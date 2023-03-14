@@ -37,9 +37,10 @@ export function updateSpider(data) {
 }
 
 // 删除应用列表
-export function delSpider(id) {
+export function delSpider(ids) {
   return request({
-    url: '/spider/delete' + id,
-    method: 'delete'
+    url: '/spider/delete',
+    method: 'post',
+    data: ids
   })
 }

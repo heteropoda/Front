@@ -109,13 +109,20 @@
       @pagination="getList"
     />
 
+    <el-dialog :title="title" :visible.sync="pop_open" width="30%" :before-close="cancel">
+      <span v-html="pop_title"></span>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="cancel">取 消</el-button>
+        <el-button type="primary" @click="cancel">确 定</el-button>
+      </span>
+    </el-dialog>
+
   </div>
 </template>
 
 <script>
 import { listSpider, addSpider, getSpider, updateSpider, delSpider } from "@/api/spider";
 import { resetForm } from "@/utils/ruoyi";
-import modal from '@/utils/modal'
 
 export default {
   name: "Spider",
@@ -137,8 +144,10 @@ export default {
       spiderList: [],
       // 弹出层标题
       title: "",
+      pop_title: "",
       // 是否显示弹出层
       open: false,
+      pop_open: false,
       // 查询参数
       queryParams: {
         pageNum: 1,
@@ -172,6 +181,7 @@ export default {
     // 取消按钮
     cancel() {
       this.open = false;
+      this.pop_open = false;
       this.reset();
     },
     // 表单重置
@@ -241,13 +251,11 @@ export default {
     },
     /** 删除按钮操作 */
     handleDelete(row) {
-      const ids = row.id || this.ids;
-      modal.confirm('是否确认删除爬虫编号为"' + ids + '"的数据项？').then(function() {
-        return delApplication(ids);
-      }).then(() => {
-        this.getList();
-        modal.msgSuccess("删除成功");
-      }).catch(() => {});
+      const ids = !isNaN(row.id) ? [row.id] : this.ids
+      delSpider(ids)
+      this.pop_title = "删除成功"
+      this.pop_open = true
+      this.getList();
     },
   }
 };
