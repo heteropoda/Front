@@ -244,3 +244,9 @@ export function getNormalPath(p) {
 export function blobValidate(data) {
   return data.type !== 'application/json'
 }
+
+// headers
+export var headers = {
+  'Content-Type': 'application/text;charset=UTF-8',
+  'Accept': 'application/json'
+}

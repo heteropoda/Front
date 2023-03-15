@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
 
-    <el-form :model="queryParams" ref="queryForm" size="small" :inline="true" v-show="showSearch" label-width="68px">
+    <el-form :model="queryParams" ref="queryParams" size="small" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="任务名" prop="name">
         <el-input
           v-model="queryParams.name"
@@ -109,7 +109,19 @@
       @pagination="getList"
     />
 
-    <el-dialog :title="title" :visible.sync="pop_open" width="30%" :before-close="cancel">
+    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body :before-close="cancel">
+      <el-form ref="settingForm" :model="settingForm" :rules="rules" label-width="80px">
+        <el-form-item label="配置">
+          <el-input v-model="settingForm" placeholder="请填写配置文本" />
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="submitForm">确 定</el-button>
+        <el-button @click="cancel">取 消</el-button>
+      </div>
+    </el-dialog>
+
+    <el-dialog :title="pop_title" :visible.sync="pop_open" width="30%" :before-close="cancel">
       <span v-html="pop_title"></span>
       <span slot="footer" class="dialog-footer">
         <el-button @click="cancel">取 消</el-button>
@@ -148,6 +160,8 @@ export default {
       // 是否显示弹出层
       open: false,
       pop_open: false,
+      //判断是添加还是修改,并传输选中id
+      open_id: null,
       // 查询参数
       queryParams: {
         pageNum: 1,
@@ -158,8 +172,6 @@ export default {
         createTime: null
       },
       // 表单参数
-      form: {},
-      // 配置参数
       settingForm: '',
       // 表单校验
       rules: {}
@@ -182,19 +194,15 @@ export default {
     cancel() {
       this.open = false;
       this.pop_open = false;
+      this.title = ""
+      this.pop_title = ""
       this.reset();
     },
     // 表单重置
     reset() {
-      this.form = {
-        pageNum: 1,
-        pageSize: 10,
-        name: null,
-        spiderd: null,
-        sign: null,
-        createTime: null
-      };
-      resetForm(this, "form");
+      this.open_id = null
+      this.settingForm = ''
+      resetForm(this, "settingform");
     },
     /** 搜索按钮操作 */
     handleQuery() {
@@ -203,7 +211,7 @@ export default {
     },
     /** 重置按钮操作 */
     resetQuery() {
-      resetForm(this, "queryForm");
+      resetForm(this, "queryParams");
       this.handleQuery();
     },
     // 多选框选中数据
@@ -224,30 +232,30 @@ export default {
       this.reset();
       const id = !isNaN(row.id) ? row.id : this.ids[0]
       getSpider(id).then(response => {
-        this.form = response.data;
+        delete response.data["state"]
+        this.settingForm = JSON.stringify(response.data);
         this.open = true;
         this.title = "修改爬虫配置";
+        this.open_id = id
       });
     },
     /** 提交按钮 */
     submitForm() {
-      this.$refs["form"].validate(valid => {
-        if (valid) {
-          if (this.form.id != null) {
-            updateApplication(this.form).then(response => {
-              this.$modal.msgSuccess("修改成功");
-              this.open = false;
-              this.getList();
-            });
-          } else {
-            addApplication(this.form).then(response => {
-              this.$modal.msgSuccess("新增成功");
-              this.open = false;
-              this.getList();
-            });
-          }
-        }
-      });
+      if (this.open_id != null) {
+        updateSpider(this.open_id, this.settingForm).then(response => {
+          this.open = false;
+          this.pop_title = "修改成功"
+          this.pop_open = true
+          this.getList();
+        });
+      } else {
+        addSpider(this.settingForm).then(response => {
+          this.open = false;
+          this.pop_title = "新增成功"
+          this.pop_open = true
+          this.getList();
+        });
+      }
     },
     /** 删除按钮操作 */
     handleDelete(row) {

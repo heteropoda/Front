@@ -1,4 +1,5 @@
 import request from '@/utils/request'
+import { headers } from '@/utils/ruoyi'
 
 // 查询应用列表列表
 export function listSpider(query) {
@@ -23,16 +24,19 @@ export function addSpider(data) {
   return request({
     url: '/spider/create',
     method: 'post',
-    data: data
+    data: data,
+    headers: headers
   })
 }
 
 // 修改应用列表
-export function updateSpider(data) {
+export function updateSpider(id, data) {
   return request({
     url: '/spider/update',
     method: 'post',
-    data: data
+    params: {'id': id},
+    data: data,
+    headers: headers
   })
 }
 
@@ -41,6 +45,7 @@ export function delSpider(ids) {
   return request({
     url: '/spider/delete',
     method: 'post',
-    data: ids
+    data: ids,
+    headers: headers
   })
 }
